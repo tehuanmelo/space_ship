@@ -16,7 +16,7 @@ def main():
     player_surf = pygame.image.load(join('images', 'player.png')).convert_alpha()
     player_rect = player_surf.get_frect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2))
     player_speed = 300
-    player_direction = pygame.math.Vector2(0,0)
+    player_direction = pygame.math.Vector2()
     
     star_surf = pygame.image.load(join('images', 'star.png')).convert_alpha()
     star_pos_list = [(randint(0,WINDOW_WIDTH), randint(0,WINDOW_HEIGHT)) for i in range(20)]
@@ -33,15 +33,19 @@ def main():
     while running:
         dt = clock.tick(60) / 1000
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if (event.type == pygame.QUIT or 
+                (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE)):
                 running = False
                 
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            player_direction.x += 1
-        elif keys[pygame.K_ESCAPE]:
-            running = False
                 
+        # Player movement
+        keys = pygame.key.get_pressed()
+        player_direction.x = int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT])
+        player_direction.y = int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP])
+        player_direction = player_direction.normalize() if player_direction else player_direction
+        player_rect.center += player_direction * player_speed * dt
+        
+        # Drawing sprites    
         display_surface.fill("darkgrey")
         
         for pos in star_pos_list:
