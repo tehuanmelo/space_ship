@@ -12,8 +12,19 @@ class Player(pygame.sprite.Sprite):
         self.speed = 300
         self.direction = pygame.math.Vector2()
         
+        # laser delay
+        self.laser_can_shoot = True
+        self.laser_shoot_time = 0
+        self.laser_shoot_delay = 400
+        
+    def laser_delay(self):
+        if not self.laser_can_shoot:
+            current_time = pygame.time.get_ticks()
+            if current_time - self.laser_shoot_time >= self.laser_shoot_delay:
+                self.laser_can_shoot = True
+        
+        
     def update(self, dt):
-        # dt = args[0] if args else None
         keys = pygame.key.get_pressed()
         self.direction.x = int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT])
         self.direction.y = int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP])
@@ -21,8 +32,12 @@ class Player(pygame.sprite.Sprite):
         self.rect.center += self.direction * self.speed * dt
         
         keys_pressed = pygame.key.get_just_pressed()
-        if keys_pressed[pygame.K_SPACE]:
+        if keys_pressed[pygame.K_SPACE] and self.laser_can_shoot:
                 print("Laser fired")
+                self.laser_can_shoot = False
+                self.laser_shoot_time = pygame.time.get_ticks()
+                
+        self.laser_delay()
 
 class Star(pygame.sprite.Sprite):
     def __init__(self, groups, surf):
