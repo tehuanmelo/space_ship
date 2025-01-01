@@ -1,6 +1,6 @@
 import pygame
 from os.path import join
-from random import randint
+from random import randint, uniform
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
@@ -64,24 +64,43 @@ class Laser(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
 
+class Meteor(pygame.sprite.Sprite):
+    def __init__(self, groups, surf, pos):
+        super().__init__(groups)
+        self.image = surf
+        self.rect = self.image.get_frect(center=(pos))
+        self.creation_time = pygame.time.get_ticks()
+        self.destroy_time = 3000
+        self.direction = pygame.Vector2(uniform(-.5,.5),1)
+        self.meteor_speed = randint(300, 500)
+        
+    def update(self, dt):
+        self.rect.center += self.direction * self.meteor_speed * dt
+        current_time = pygame.time.get_ticks()
+        if current_time - self.creation_time >= self.destroy_time:
+            self.kill()
+        
+
 def main():
     
+    # Game setup
     pygame.init()
     display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Space Shooter")
-    
     clock = pygame.time.Clock()
     running = True
     
+    # Imports
+    star_surf = pygame.image.load(join('images', 'star.png')).convert_alpha()
+    meteor_surf = pygame.image.load(join('images', 'meteor.png')).convert_alpha()
+    
     # Sprites
     all_sprites = pygame.sprite.Group()
-    star_surf = pygame.image.load(join('images', 'star.png')).convert_alpha()
     stars = [Star(all_sprites, star_surf) for i in range(20)]
     player = Player(all_sprites)
     
-    meteor_surf = pygame.image.load(join('images', 'meteor.png')).convert_alpha()
-    meteor_rect = meteor_surf.get_frect(center=(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2))
-    
+    meteor_event = pygame.event.custom_type()
+    pygame.time.set_timer(meteor_event, 500)
     
     
     # event loop
@@ -92,13 +111,13 @@ def main():
             if (event.type == pygame.QUIT or 
                 (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE)):
                 running = False
-                
-        all_sprites.update(dt)  
+            if event.type == meteor_event:
+                x, y = randint(0,WINDOW_WIDTH), 0
+                Meteor(all_sprites, meteor_surf, (x,y))
 
         # Drawing sprites    
+        all_sprites.update(dt)  
         display_surface.fill("darkgrey")
-       
-        display_surface.blit(meteor_surf, meteor_rect)
         all_sprites.draw(display_surface)
            
         pygame.display.update()
