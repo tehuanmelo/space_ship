@@ -16,6 +16,8 @@ class Player(pygame.sprite.Sprite):
         
         # laser 
         self.laser_image = pygame.image.load(join('images', 'laser.png')).convert_alpha()
+        self.laser_sound = pygame.mixer.Sound(join("audio", "laser.wav")) 
+        self.laser_sound.set_volume(0.1)
         self.laser_sprites = pygame.sprite.Group()       
         self.laser_can_shoot = True
         self.laser_shoot_time = 0
@@ -40,7 +42,7 @@ class Player(pygame.sprite.Sprite):
         
         keys_pressed = pygame.key.get_just_pressed()
         if keys_pressed[pygame.K_SPACE] and self.laser_can_shoot:
-                Laser((self.sprite_groups, self.laser_sprites), self.laser_image, self.rect.midtop)
+                Laser((self.sprite_groups, self.laser_sprites), self.laser_image, self.rect.midtop, self.laser_sound)
                 self.laser_can_shoot = False
                 self.laser_shoot_time = pygame.time.get_ticks()
                 
@@ -55,11 +57,12 @@ class Star(pygame.sprite.Sprite):
         
  
 class Laser(pygame.sprite.Sprite):
-    def __init__(self, groups, surf, pos):
+    def __init__(self, groups, surf, pos, laser_sound):
         super().__init__(groups)
         self.image = surf
         self.rect = self.image.get_frect(midbottom=pos)  
         self.speed = 700
+        laser_sound.play()
          
     def update(self, dt):
         self.rect.centery -= self.speed * dt
@@ -107,11 +110,12 @@ class ExplosionAnimation(pygame.sprite.Sprite):
             self.kill()
 
  
-def colisions(player, meteor_sprites, explosion_surf_list, all_sprites):
+def colisions(player, meteor_sprites, explosion_surf_list, all_sprites, explosion_sound):
     pygame.sprite.spritecollide(player, meteor_sprites, True, pygame.sprite.collide_mask)
     for laser in player.laser_sprites:
         if pygame.sprite.spritecollide(laser, meteor_sprites, True):
             laser.kill()
+            explosion_sound.play()
             ExplosionAnimation(explosion_surf_list, laser.rect.midtop, all_sprites)
 
 
@@ -138,7 +142,11 @@ def main():
     star_surf = pygame.image.load(join('images', 'star.png')).convert_alpha()
     meteor_surf = pygame.image.load(join('images', 'meteor.png')).convert_alpha()
     explosion_surf_list = [pygame.image.load(join("images", "explosion", f"{i}.png")).convert_alpha() for i in range(21)]
-    print(explosion_surf_list)
+    explosion_sound = pygame.mixer.Sound(join("audio", "explosion.wav"))   
+    explosion_sound.set_volume(.3) 
+    game_music = pygame.mixer.Sound(join("audio", "game_music.wav"))
+    game_music.set_volume(.3)
+    game_music.play(loops=-1)
     
     # Sprites
     all_sprites = pygame.sprite.Group()
@@ -167,7 +175,7 @@ def main():
         
         all_sprites.draw(display_surface)
         
-        colisions(player, meteor_sprites, explosion_surf_list, all_sprites)
+        colisions(player, meteor_sprites, explosion_surf_list, all_sprites, explosion_sound)
            
         pygame.display.update()
 
