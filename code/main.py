@@ -12,6 +12,7 @@ class Player(pygame.sprite.Sprite):
         self.speed = 400
         self.direction = pygame.math.Vector2()
         self.sprite_groups = groups
+        self.mask = pygame.mask.from_surface(self.image)
         
         # laser 
         self.laser_image = pygame.image.load(join('images', 'laser.png')).convert_alpha()
@@ -36,7 +37,6 @@ class Player(pygame.sprite.Sprite):
         if (not (new_position.x > WINDOW_WIDTH or new_position.x < 0
             or new_position.y > WINDOW_HEIGHT or new_position.y < 0)):
             self.rect.center = new_position
-        # self.rect.center += self.direction * self.speed * dt
         
         keys_pressed = pygame.key.get_just_pressed()
         if keys_pressed[pygame.K_SPACE] and self.laser_can_shoot:
@@ -52,8 +52,7 @@ class Star(pygame.sprite.Sprite):
         super().__init__(groups)
         self.image = surf
         self.rect = self.image.get_frect(center=(randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)))
- 
-    
+        
  
 class Laser(pygame.sprite.Sprite):
     def __init__(self, groups, surf, pos):
@@ -61,6 +60,7 @@ class Laser(pygame.sprite.Sprite):
         self.image = surf
         self.rect = self.image.get_frect(midbottom=pos)  
         self.speed = 700
+        self.mask = pygame.mask.from_surface(self.image)
          
     def update(self, dt):
         self.rect.centery -= self.speed * dt
@@ -77,6 +77,7 @@ class Meteor(pygame.sprite.Sprite):
         self.destroy_time = 3000
         self.direction = pygame.Vector2(uniform(-.5,.5),1)
         self.meteor_speed = randint(200, 400)
+        self.mask = pygame.mask.from_surface(self.image)
         
     def update(self, dt):
         self.rect.center += self.direction * self.meteor_speed * dt
@@ -86,7 +87,7 @@ class Meteor(pygame.sprite.Sprite):
 
  
 def colisions(player, meteor_sprites):
-    pygame.sprite.spritecollide(player, meteor_sprites, True)
+    pygame.sprite.spritecollide(player, meteor_sprites, True, pygame.sprite.collide_mask)
     for laser in player.laser_sprites:
         if pygame.sprite.spritecollide(laser, meteor_sprites, True):
             laser.kill()
@@ -97,7 +98,9 @@ def display_score(display_surface):
     score_font = pygame.font.Font(join("images", "Oxanium-Bold.ttf"), 40)
     score_surf = score_font.render(str(current_time), True, "#EEEEEE")
     score_rect = score_surf.get_rect(midbottom=(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 20))
+    padded_score_rect = score_rect.inflate(20, 20).move(0,-8)
     display_surface.blit(score_surf, score_rect)
+    pygame.draw.rect(display_surface, "#EEEEEE", padded_score_rect, 5, 10)
 
 
 def main():
