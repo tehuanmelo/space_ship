@@ -53,6 +53,7 @@ class Star(pygame.sprite.Sprite):
         self.image = surf
         self.rect = self.image.get_frect(center=(randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)))
  
+    
  
 class Laser(pygame.sprite.Sprite):
     def __init__(self, groups, surf, pos):
@@ -82,13 +83,22 @@ class Meteor(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if current_time - self.creation_time >= self.destroy_time:
             self.kill()
-       
+
  
 def colisions(player, meteor_sprites):
     pygame.sprite.spritecollide(player, meteor_sprites, True)
     for laser in player.laser_sprites:
         if pygame.sprite.spritecollide(laser, meteor_sprites, True):
             laser.kill()
+
+
+def display_score(display_surface):
+    current_time = pygame.time.get_ticks() // 100
+    score_font = pygame.font.Font(join("images", "Oxanium-Bold.ttf"), 40)
+    score_surf = score_font.render(str(current_time), True, "#EEEEEE")
+    score_rect = score_surf.get_rect(midbottom=(WINDOW_WIDTH / 2, WINDOW_HEIGHT - 20))
+    display_surface.blit(score_surf, score_rect)
+
 
 def main():
     
@@ -125,7 +135,10 @@ def main():
 
         # Drawing sprites    
         all_sprites.update(dt)  
-        display_surface.fill("darkgrey")
+        display_surface.fill("#3B1E54")
+        
+        display_score(display_surface)
+        
         all_sprites.draw(display_surface)
         
         colisions(player, meteor_sprites)
