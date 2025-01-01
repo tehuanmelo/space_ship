@@ -2,6 +2,8 @@
 
 This is a simple space shooter game built in python.
 
+![Alt Text](images/demo-video/demo-video.gif)
+
 ## Features
 - Uses `pygame-ce` for graphics and event handling.
 - Modular and easy-to-understand code structure.
@@ -67,7 +69,3 @@ The main game logic is contained in [main.py](code/main.py). Below is an explana
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
