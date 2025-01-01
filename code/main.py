@@ -89,12 +89,30 @@ class Meteor(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.original_image, self.rotation)
         self.rect = self.image.get_frect(center=self.rect.center)
 
+
+class ExplosionAnimation(pygame.sprite.Sprite):
+    def __init__(self, frame_list, pos, groups):
+        super().__init__(groups)
+        self.frame_list = frame_list
+        self.index = 0
+        self.image = frame_list[self.index]
+        self.rect = self.image.get_frect(center=pos)
+        self.animation_speed = 100
+        
+    def update(self, dt):
+        self.index += self.animation_speed * dt
+        if self.index < len(self.frame_list):
+            self.image = self.frame_list[int(self.index)]
+        else:
+            self.kill()
+
  
-def colisions(player, meteor_sprites):
+def colisions(player, meteor_sprites, explosion_surf_list, all_sprites):
     pygame.sprite.spritecollide(player, meteor_sprites, True, pygame.sprite.collide_mask)
     for laser in player.laser_sprites:
         if pygame.sprite.spritecollide(laser, meteor_sprites, True):
             laser.kill()
+            ExplosionAnimation(explosion_surf_list, laser.rect.midtop, all_sprites)
 
 
 def display_score(display_surface):
@@ -119,13 +137,14 @@ def main():
     # Imports
     star_surf = pygame.image.load(join('images', 'star.png')).convert_alpha()
     meteor_surf = pygame.image.load(join('images', 'meteor.png')).convert_alpha()
+    explosion_surf_list = [pygame.image.load(join("images", "explosion", f"{i}.png")).convert_alpha() for i in range(21)]
+    print(explosion_surf_list)
     
     # Sprites
     all_sprites = pygame.sprite.Group()
     meteor_sprites = pygame.sprite.Group()
     stars = [Star(all_sprites, star_surf) for i in range(20)]
     player = Player(all_sprites)
-    print(player.rect.size)
     meteor_event = pygame.event.custom_type()
     pygame.time.set_timer(meteor_event, 300)
     
@@ -148,7 +167,7 @@ def main():
         
         all_sprites.draw(display_surface)
         
-        colisions(player, meteor_sprites)
+        colisions(player, meteor_sprites, explosion_surf_list, all_sprites)
            
         pygame.display.update()
 
