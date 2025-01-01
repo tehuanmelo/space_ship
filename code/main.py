@@ -60,7 +60,6 @@ class Laser(pygame.sprite.Sprite):
         self.image = surf
         self.rect = self.image.get_frect(midbottom=pos)  
         self.speed = 700
-        self.mask = pygame.mask.from_surface(self.image)
          
     def update(self, dt):
         self.rect.centery -= self.speed * dt
@@ -71,19 +70,24 @@ class Laser(pygame.sprite.Sprite):
 class Meteor(pygame.sprite.Sprite):
     def __init__(self, groups, surf, pos):
         super().__init__(groups)
-        self.image = surf
+        self.original_image = surf
+        self.image = self.original_image
         self.rect = self.image.get_frect(center=(pos))
         self.creation_time = pygame.time.get_ticks()
         self.destroy_time = 3000
         self.direction = pygame.Vector2(uniform(-.5,.5),1)
         self.meteor_speed = randint(200, 400)
-        self.mask = pygame.mask.from_surface(self.image)
+        self.rotation_speed = uniform(-100, 100)
+        self.rotation = 0
         
     def update(self, dt):
         self.rect.center += self.direction * self.meteor_speed * dt
         current_time = pygame.time.get_ticks()
         if current_time - self.creation_time >= self.destroy_time:
             self.kill()
+        self.rotation += self.rotation_speed * dt
+        self.image = pygame.transform.rotate(self.original_image, self.rotation)
+        self.rect = self.image.get_frect(center=self.rect.center)
 
  
 def colisions(player, meteor_sprites):
